@@ -1,5 +1,6 @@
 package com.ditto.authsystem.controller;
 
+import com.ditto.authsystem.dto.LoginDto;
 import com.ditto.authsystem.dto.UserRegistrationDto;
 import com.ditto.authsystem.service.UserService;
 import jakarta.validation.Valid;
@@ -23,5 +24,12 @@ public class AuthController {
         userService.registerUser(userDto);
         return ResponseEntity.ok("User registered successfully");
     }
+
+    @PostMapping("/login")
+    public ResponseEntity<String> login(@Valid @RequestBody LoginDto loginDto) {
+        String token = userService.login(loginDto);
+        return ResponseEntity.ok(token);
+    }
+
 }
 

@@ -1,20 +1,27 @@
 package com.ditto.authsystem.service;
 
+import com.ditto.authsystem.dto.LoginDto;
 import com.ditto.authsystem.dto.UserRegistrationDto;
 import com.ditto.authsystem.entity.User;
 import com.ditto.authsystem.repository.UserRepository;
+import com.ditto.authsystem.util.JwtUtils;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 public class UserServiceImpl implements UserService {
 
+    //add fields that are going to be used!
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final JwtUtils jwtUtils;
 
-    public UserServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public UserServiceImpl(UserRepository userRepository,
+                           PasswordEncoder passwordEncoder,
+                           JwtUtils jwtUtils) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.jwtUtils = jwtUtils;
     }
 
     @Override
@@ -30,6 +37,19 @@ public class UserServiceImpl implements UserService {
         user.setRole(userDto.getRole());
 
         userRepository.save(user);
+    }
+
+    @Override
+    public String login(LoginDto loginDto) {
+        User user = userRepository.findByEmail(loginDto.getEmail())
+                .orElseThrow(() -> new IllegalArgumentException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(loginDto.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("Invalid email or password");
+        }
+
+        // Generate JWT
+        return jwtUtils.generateToken(user.getEmail());
     }
 }
 
